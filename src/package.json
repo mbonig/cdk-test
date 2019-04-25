@@ -1,0 +1,38 @@
+{
+  "name": "src",
+  "version": "0.1.0",
+  "bin": {
+    "src": "bin/src.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "cdk": "cdk",
+    "deploy": "cdk deploy",
+    "destroy": "cdk destroy",
+    "test": "npm run build && mocha tests/**/*.spec.js"
+  },
+  "devDependencies": {
+    "@types/node": "8.10.40",
+    "aws-cdk": "^0.28.0",
+    "mocha": "^6.1.4",
+    "typescript": "^3.3.3333"
+  },
+  "dependencies": {
+    "@aws-cdk/assert": "^0.29.0",
+    "@aws-cdk/aws-cloudfront": "^0.29.0",
+    "@aws-cdk/aws-codebuild": "^0.29.0",
+    "@aws-cdk/aws-codepipeline": "^0.29.0",
+    "@aws-cdk/aws-codepipeline-actions": "^0.29.0",
+    "@aws-cdk/aws-secretsmanager": "^0.29.0",
+    "@aws-cdk/aws-sns": "^0.29.0",
+    "@aws-cdk/aws-ssm": "^0.29.0",
+    "@aws-cdk/cdk": "^0.29.0",
+    "@types/mocha": "^5.2.6",
+    "@types/sinon": "^7.0.11",
+    "command-line-args": "^5.1.1",
+    "should": "^13.2.3",
+    "sinon": "^7.3.2",
+    "source-map-support": "^0.5.9"
+  }
+}

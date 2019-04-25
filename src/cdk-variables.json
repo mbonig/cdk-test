@@ -1,0 +1,5 @@
+{
+  "githubRepo": "github.com/mbonig/cdk-test",
+  "useCloudFront": true,
+  "githubTokenParameterName": ""
+}
