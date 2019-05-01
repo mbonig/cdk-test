@@ -1,5 +1,7 @@
 {
-  "githubRepo": "github.com/mbonig/cdk-test",
-  "useCloudFront": true,
-  "githubTokenParameterName": ""
+  "prefix": "testing",
+  "githubRepo": "cdk-test",
+  "githubOwner": "mbonig",
+  "useCloudFront": false,
+  "githubTokenParameterName": "github-token-for-cicd"
 }

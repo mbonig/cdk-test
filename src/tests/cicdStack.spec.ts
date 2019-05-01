@@ -19,7 +19,8 @@ describe("CICD Stack", () => {
             useCloudFront: false,
             githubBranch: 'somebranch',
             githubOwner: 'mbonig',
-            githubRepo: 'somerepo'
+            githubRepo: 'somerepo',
+            codebuildBuildspec: 'buildspec.yml'
         };
     });
 
@@ -58,6 +59,34 @@ describe("CICD Stack", () => {
             let sourceStage = pipeline.stages.find((s: any) => s.stageName === 'Source');
 
             should(sourceStage.actions[0].configuration.Branch).be.equal('master');
+
+        });
+
+        it('uses passthrough buildspec when empty', () => {
+            let o = {...options};
+            delete o.codebuildBuildspec;
+            myStack.create(o);
+
+            expect(myStack).to(haveResource("AWS::CodePipeline::Pipeline"));
+            let pipeline: any = myStack.node.children.find(c => c instanceof Pipeline);
+            let buildStage = pipeline.stages.find((s: any) => s.stageName === 'Build');
+
+            let buildSpec = buildStage.actions[0].props.project.node.children[1].properties.source.buildSpec;
+            should(buildSpec).be.equal(JSON.stringify(CICDStack.PASSTHROUGH_BUILDSPEC, null, 2));
+
+        });
+
+        it('uses given buildspec', () => {
+            let o = {...options, codebuildBuildspec: 'buildspec.prod.yml'};
+
+            myStack.create(o);
+
+            expect(myStack).to(haveResource("AWS::CodePipeline::Pipeline"));
+            let pipeline: any = myStack.node.children.find(c => c instanceof Pipeline);
+            let buildStage = pipeline.stages.find((s: any) => s.stageName === 'Build');
+
+            let buildSpec = buildStage.actions[0].props.project.node.children[1].properties.source.buildSpec;
+            should(buildSpec).be.equal(o.codebuildBuildspec);
 
         });
     });

@@ -10,6 +10,7 @@
     "cdk": "cdk",
     "deploy": "cdk deploy",
     "destroy": "cdk destroy",
+    "build:deploy": "npm run build && npm run deploy",
     "test": "npm run build && mocha tests/**/*.spec.js"
   },
   "devDependencies": {

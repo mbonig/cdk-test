@@ -1,12 +1,29 @@
-import {Construct, Stack, StackProps} from "@aws-cdk/cdk";
+import {Construct, SecretValue, Stack, StackProps} from "@aws-cdk/cdk";
 import {Bucket, IBucket} from '@aws-cdk/aws-s3';
 import {CloudFrontWebDistribution} from "@aws-cdk/aws-cloudfront";
 import * as codepipeline from "@aws-cdk/aws-codepipeline";
-import * as ssm from "@aws-cdk/aws-ssm";
+import {ComputeType, LinuxBuildImage} from "@aws-cdk/aws-codebuild";
 import codepipeline_actions = require('@aws-cdk/aws-codepipeline-actions');
 import codebuild = require('@aws-cdk/aws-codebuild');
 
+
 export class CICDStack extends Stack {
+    static PASSTHROUGH_BUILDSPEC: any = {
+        version: '0.2',
+        phases: {
+            build: {
+                commands: [
+                    'env',
+                ],
+            },
+        },
+        artifacts: {
+            'files': [
+                '**/*',
+            ],
+        },
+    };
+
     constructor(scope: Construct, id: string, props?: StackProps) {
         super(scope, id, props);
     }
@@ -36,30 +53,39 @@ export class CICDStack extends Stack {
             ...options
         };
 
-        const token = new ssm.ParameterStoreSecureString({
-            parameterName: o.githubTokenParameterName,
-            version: 1
-        });
         const sourceOutput = new codepipeline.Artifact();
+        // const oauth = SecretValue.ssmSecure(o.githubTokenParameterName, "1");
+        // const oauth = SecretValue.cfnDynamicReference(new CfnDynamicReference(CfnDynamicReferenceService.Ssm, `${o.githubTokenParameterName}:1`));
+        const oauth = SecretValue.secretsManager(o.githubTokenParameterName);
         const sourceAction = new codepipeline_actions.GitHubSourceAction({
             actionName: 'GitHub_Source',
             owner: o.githubOwner,
             repo: o.githubRepo,
-            oauthToken: token,
+            oauthToken: oauth,
             output: sourceOutput,
             branch: o.githubBranch,
+            pollForSourceChanges: true
         });
-        const project = new codebuild.PipelineProject(this, `${o.prefix}-cicd-codebuild`);
+
+        const project = new codebuild.PipelineProject(this, `${o.prefix}-cicd-codebuild`, {
+            environment: {
+                buildImage: LinuxBuildImage.UBUNTU_14_04_DOCKER_18_09_0,
+                computeType: ComputeType.Small,
+                privileged: true
+            },
+            buildSpec: o.codebuildBuildspec || CICDStack.PASSTHROUGH_BUILDSPEC
+        });
+        let codebuildOutputArtifact = new codepipeline.Artifact('build-output');
         const buildAction = new codepipeline_actions.CodeBuildAction({
             actionName: 'CodeBuild',
             project,
             input: sourceOutput,
-            output: new codepipeline.Artifact(), // optional
+            output: codebuildOutputArtifact, // optional
         });
 
         const deployAction = new codepipeline_actions.S3DeployAction({
             actionName: 'S3Deploy',
-            input: buildAction.outputs[0],
+            input: codebuildOutputArtifact,
             bucket: bucket,
 
         });
@@ -81,4 +107,5 @@ export class Options {
     githubOwner: string;
     githubBranch: string;
     githubRepo: string;
+    codebuildBuildspec: string | any;
 }
