@@ -1,0 +1,1 @@
+docker build -t cdk-test --build-arg BASE_IMAGE=mtb-docker-dev .
