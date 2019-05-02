@@ -3,6 +3,7 @@ import {Bucket, IBucket} from '@aws-cdk/aws-s3';
 import {CloudFrontWebDistribution} from "@aws-cdk/aws-cloudfront";
 import * as codepipeline from "@aws-cdk/aws-codepipeline";
 import {ComputeType, LinuxBuildImage} from "@aws-cdk/aws-codebuild";
+import {GitHubTrigger} from "@aws-cdk/aws-codepipeline-actions";
 import codepipeline_actions = require('@aws-cdk/aws-codepipeline-actions');
 import codebuild = require('@aws-cdk/aws-codebuild');
 
@@ -64,7 +65,7 @@ export class CICDStack extends Stack {
             oauthToken: oauth,
             output: sourceOutput,
             branch: o.githubBranch,
-            pollForSourceChanges: true
+            trigger: GitHubTrigger.WebHook
         });
 
         const project = new codebuild.PipelineProject(this, `${o.prefix}-cicd-codebuild`, {

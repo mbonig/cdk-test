@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=mtb-docker-dev:latest
+ARG BASE_IMAGE=alpine:latest
 FROM $BASE_IMAGE
 
 RUN apk add git nodejs nodejs-npm
