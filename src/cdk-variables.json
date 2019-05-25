@@ -3,5 +3,6 @@
   "githubRepo": "cdk-test",
   "githubOwner": "mbonig",
   "useCloudFront": false,
+  "useS3Hosting": false,
   "githubTokenParameterName": "github-token-for-cicd"
 }
