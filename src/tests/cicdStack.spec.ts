@@ -38,7 +38,7 @@ describe("CICD Stack", () => {
             myStack.create(options);
             expect(myStack).notTo(haveResource("AWS::CloudFront::Distribution"));
         });
-    });
+    }).timeout(5000);
 
     describe('S3 hosting option', ()=>{
         it('Should create hosting, uses index if not provided', () => {
