@@ -5,7 +5,7 @@
     "src": "bin/src.js"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -b",
     "watch": "tsc -w",
     "cdk": "cdk",
     "deploy": "cdk deploy",

@@ -30,7 +30,10 @@ export class CICDStack extends Stack {
     }
 
     create(options: Options) {
-        const deployBucket = new Bucket(this, `${options.prefix}-cicd-deploy`);
+
+        const deployBucket = new Bucket(this, `${options.prefix}-cicd-deploy`, {
+            websiteIndexDocument: options.useS3Hosting ? options.indexDocument || 'index.html' : undefined
+        });
         this.setupCodePipeline(options, deployBucket);
 
         if (options.useCloudFront) {
@@ -68,13 +71,19 @@ export class CICDStack extends Stack {
             trigger: GitHubTrigger.WebHook
         });
 
+        let buildSpec = CICDStack.PASSTHROUGH_BUILDSPEC;
+        if (typeof (o.codebuildBuildspec) === 'object') {
+            buildSpec = JSON.stringify(o.codebuildBuildspec);
+        } else if (o.codebuildBuildspec) {
+            buildSpec = o.codebuildBuildspec;
+        }
         const project = new codebuild.PipelineProject(this, `${o.prefix}-cicd-codebuild`, {
             environment: {
                 buildImage: LinuxBuildImage.UBUNTU_14_04_DOCKER_18_09_0,
                 computeType: ComputeType.Small,
                 privileged: true
             },
-            buildSpec: o.codebuildBuildspec || CICDStack.PASSTHROUGH_BUILDSPEC
+            buildSpec: buildSpec
         });
         let codebuildOutputArtifact = new codepipeline.Artifact('build-output');
         const buildAction = new codepipeline_actions.CodeBuildAction({
@@ -105,6 +114,9 @@ export class CICDStack extends Stack {
 export class Options {
     prefix: string;
     useCloudFront: boolean;
+    useS3Hosting: boolean;
+    indexDocument: string | undefined;
+    errorDocument: string | undefined;
     githubOwner: string;
     githubBranch: string;
     githubRepo: string;
