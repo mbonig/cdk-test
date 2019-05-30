@@ -1,5 +1,5 @@
 import {expect, haveResource} from '@aws-cdk/assert';
-import {CICDStack, Options} from "../lib/cicdStack";
+import {CICDStack, CICDStackProps} from "../lib/cicdStack";
 import {Stack} from "@aws-cdk/cdk";
 import {Bucket} from "@aws-cdk/aws-s3";
 import {Pipeline} from "@aws-cdk/aws-codepipeline";
@@ -10,11 +10,12 @@ import should = require('should');
 describe("CICD Stack", () => {
     let mockApp: Stack;
     let myCICDStack: CICDStack;
-    let options: Options;
+    let options: CICDStackProps;
 
+    let createStack = (o: CICDStackProps) => new CICDStack(mockApp, 'TestingStack', o);
     beforeEach(() => {
         mockApp = new cdk.Stack();
-        myCICDStack = new CICDStack(mockApp, 'TestingStack');
+
         options = {
             prefix: 'unittest',
             useCloudFront: false,
@@ -30,7 +31,12 @@ describe("CICD Stack", () => {
 
     describe('CodePipeline', () => {
         it('Source action should be github with creds', () => {
-            myCICDStack.create(options);
+            // arrange
+
+            // action
+            myCICDStack = createStack(options);
+
+            // assert
             expect(myCICDStack).to(haveResource("AWS::CodePipeline::Pipeline"));
             let pipeline: any = myCICDStack.node.children.find(c => c instanceof Pipeline);
             let sourceStage = pipeline.stages.find((s: any) => s.stageName === 'Source');
@@ -44,9 +50,12 @@ describe("CICD Stack", () => {
 
         it('defaults to master branch', () => {
 
+            // arrange
             let o = {...options};
             delete o.githubBranch;
-            myCICDStack.create(o);
+
+            // act
+            myCICDStack = createStack(o);
 
             expect(myCICDStack).to(haveResource("AWS::CodePipeline::Pipeline"));
             let pipeline: any = myCICDStack.node.children.find(c => c instanceof Pipeline);
@@ -59,7 +68,7 @@ describe("CICD Stack", () => {
         it('uses passthrough buildspec when empty', () => {
             let o = {...options};
             delete o.codebuildBuildspec;
-            myCICDStack.create(o);
+            myCICDStack = createStack(o);
 
             expect(myCICDStack).to(haveResource("AWS::CodePipeline::Pipeline"));
             let pipeline: any = myCICDStack.node.children.find(c => c instanceof Pipeline);
@@ -73,7 +82,7 @@ describe("CICD Stack", () => {
         it('uses given buildspec', () => {
             let o = {...options, codebuildBuildspec: 'buildspec.prod.yml'};
 
-            myCICDStack.create(o);
+            myCICDStack = createStack(o);
 
             expect(myCICDStack).to(haveResource("AWS::CodePipeline::Pipeline"));
             let pipeline: any = myCICDStack.node.children.find(c => c instanceof Pipeline);
@@ -87,7 +96,7 @@ describe("CICD Stack", () => {
         it('uses buildspec as object', () => {
             let o = {...options, codebuildBuildspec: {test: 'some_test_value'}};
 
-            myCICDStack.create(o);
+            myCICDStack = createStack(o);
 
             expect(myCICDStack).to(haveResource("AWS::CodePipeline::Pipeline"));
             let pipeline: any = myCICDStack.node.children.find(c => c instanceof Pipeline);
@@ -100,19 +109,19 @@ describe("CICD Stack", () => {
 
     describe('Cloudfront options', () => {
         it('Should create cloudfront', () => {
-            myCICDStack.create({...options, useCloudFront: true});
+            myCICDStack = createStack({...options, useCloudFront: true});
             expect(myCICDStack).to(haveResource("AWS::CloudFront::Distribution"));
         });
 
         it('Should not create cloudfront', () => {
-            myCICDStack.create(options);
+            myCICDStack = createStack(options);
             expect(myCICDStack).notTo(haveResource("AWS::CloudFront::Distribution"));
         });
     }).timeout(5000);
 
     describe('S3 hosting option', () => {
         it('Should create hosting, uses index if not provided', () => {
-            myCICDStack.create({...options, useS3Hosting: true});
+            myCICDStack = createStack({...options, useS3Hosting: true});
             let bucket: any = myCICDStack.node.children.find(c => c instanceof Bucket);
             let websiteConfiguration = bucket.node.children[0].properties.websiteConfiguration;
 
@@ -121,7 +130,7 @@ describe("CICD Stack", () => {
         });
 
         it('Should create hosting, uses provided', () => {
-            myCICDStack.create({...options, useS3Hosting: true, indexDocument: 'notindex.html'});
+            myCICDStack = createStack({...options, useS3Hosting: true, indexDocument: 'notindex.html'});
             let bucket: any = myCICDStack.node.children.find(c => c instanceof Bucket);
             let websiteConfiguration = bucket.node.children[0].properties.websiteConfiguration;
 
@@ -130,7 +139,7 @@ describe("CICD Stack", () => {
         });
 
         it('Should not create s3 hosting', () => {
-            myCICDStack.create(options);
+            myCICDStack = createStack(options);
             let bucket: any = myCICDStack.node.children.find(c => c instanceof Bucket);
             let websiteConfiguration = bucket.node.children[0].properties.websiteConfiguration;
             should(websiteConfiguration).be.undefined();

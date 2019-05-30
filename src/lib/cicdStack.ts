@@ -1,12 +1,11 @@
-import {Construct, SecretValue, Stack, StackProps} from "@aws-cdk/cdk";
+import {Construct, SecretValue, Stack, StackProps} from '@aws-cdk/cdk';
 import {Bucket, IBucket} from '@aws-cdk/aws-s3';
-import {CloudFrontWebDistribution} from "@aws-cdk/aws-cloudfront";
-import * as codepipeline from "@aws-cdk/aws-codepipeline";
-import {ComputeType, LinuxBuildImage} from "@aws-cdk/aws-codebuild";
-import {GitHubTrigger} from "@aws-cdk/aws-codepipeline-actions";
+import {CloudFrontWebDistribution} from '@aws-cdk/aws-cloudfront';
+import {ComputeType, LinuxBuildImage} from '@aws-cdk/aws-codebuild';
+import {GitHubTrigger} from '@aws-cdk/aws-codepipeline-actions';
+import * as codepipeline from '@aws-cdk/aws-codepipeline';
 import codepipeline_actions = require('@aws-cdk/aws-codepipeline-actions');
 import codebuild = require('@aws-cdk/aws-codebuild');
-
 
 export class CICDStack extends Stack {
     static PASSTHROUGH_BUILDSPEC: any = {
@@ -25,19 +24,17 @@ export class CICDStack extends Stack {
         },
     };
 
-    constructor(scope: Construct, id: string, props?: StackProps) {
+    constructor(scope: Construct, id: string, props: CICDStackProps) {
         super(scope, id, props);
-    }
 
-    create(options: Options) {
-
-        const deployBucket = new Bucket(this, `${options.prefix}-cicd-deploy`, {
-            websiteIndexDocument: options.useS3Hosting ? options.indexDocument || 'index.html' : undefined
+        const deployBucket = new Bucket(this, `${props.prefix}-cicd-deploy`, {
+            websiteIndexDocument: props.useS3Hosting ? props.indexDocument || 'index.html' : undefined
         });
-        this.setupCodePipeline(options, deployBucket);
 
-        if (options.useCloudFront) {
-            new CloudFrontWebDistribution(this, `${options.prefix}-cf-distribution`, {
+        this.setupCodePipeline(props, deployBucket);
+
+        if (props.useCloudFront) {
+            new CloudFrontWebDistribution(this, `${props.prefix}-cf-distribution`, {
                 originConfigs: [
                     {
                         s3OriginSource: {
@@ -50,7 +47,7 @@ export class CICDStack extends Stack {
         }
     }
 
-    private setupCodePipeline(options: Options, bucket: IBucket) {
+    private setupCodePipeline(options: CICDStackProps, bucket: IBucket) {
         const o = {
             githubBranch: 'master',
             githubTokenParameterName: 'my-github-token',
@@ -111,7 +108,7 @@ export class CICDStack extends Stack {
     }
 }
 
-export class Options {
+export interface  CICDStackProps extends StackProps {
     prefix: string;
     useCloudFront: boolean;
     useS3Hosting: boolean;

@@ -8,5 +8,5 @@ console.log("Executing Stacks with options: ", options);
 
 const app = new cdk.App();
 
-new CICDStack(app, 'CICDStack').create(options);
+new CICDStack(app, 'CICDStack', options);
 
