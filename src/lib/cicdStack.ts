@@ -7,6 +7,18 @@ import * as codepipeline from '@aws-cdk/aws-codepipeline';
 import codepipeline_actions = require('@aws-cdk/aws-codepipeline-actions');
 import codebuild = require('@aws-cdk/aws-codebuild');
 
+export interface CICDStackProps extends StackProps {
+    prefix: string;
+    useCloudFront: boolean;
+    useS3Hosting: boolean;
+    indexDocument: string | undefined;
+    errorDocument: string | undefined;
+    githubOwner: string;
+    githubBranch: string;
+    githubRepo: string;
+    codebuildBuildspec: string | any;
+}
+
 export class CICDStack extends Stack {
     static PASSTHROUGH_BUILDSPEC: any = {
         version: '0.2',
@@ -108,14 +120,3 @@ export class CICDStack extends Stack {
     }
 }
 
-export interface  CICDStackProps extends StackProps {
-    prefix: string;
-    useCloudFront: boolean;
-    useS3Hosting: boolean;
-    indexDocument: string | undefined;
-    errorDocument: string | undefined;
-    githubOwner: string;
-    githubBranch: string;
-    githubRepo: string;
-    codebuildBuildspec: string | any;
-}
